@@ -1,0 +1,120 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.3.3.RELEASE")
+        classpath("com.moowork.gradle:gradle-node-plugin:0.11")
+        classpath("net.eikehirsch.react:gradle-react-plugin:0.3.1")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'com.moowork.node'
+apply plugin: 'net.eikehirsch.react'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web:1.3.3.RELEASE") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile("org.springframework.boot:spring-boot-starter-jetty:1.3.3.RELEASE")
+    compile("org.springframework.boot:spring-boot-starter-actuator:1.3.3.RELEASE")
+    compile("org.springframework.boot:spring-boot-starter-data-jpa:1.3.3.RELEASE")
+    compile("org.springframework.boot:spring-boot-starter-data-rest:1.3.3.RELEASE")
+
+    compile("mysql:mysql-connector-java:5.1.38")
+    compile("org.liquibase:liquibase-core:3.4.2")
+
+    testCompile("junit:junit:4.8.2")
+}
+
+node {
+    // Version of node to use.
+    version = '0.11.10'
+    // Version of npm to use.
+    npmVersion = '2.1.5'
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'https://nodejs.org/dist'
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = true
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/nodejs")
+    // Set the work directory where node_modules should be located
+    nodeModulesDir = file("${project.buildDir}/nodeModules")
+}
+
+// JSX compilation and copying to resources tasks
+
+task compileDynamicJsx( type: JSXTask ) {
+    sourcesDir = 'src/main/resources/assets/dynamic'
+    destDir = 'build/compiledAssets/dynamic'
+}
+compileDynamicJsx.dependsOn(processResources)
+
+task compileStaticJsx( type: JSXTask ) {
+    sourcesDir = 'src/main/resources/assets/static'
+    destDir = 'build/compiledAssets/static'
+}
+compileStaticJsx.dependsOn(compileDynamicJsx)
+
+task copyOriginalAssets(type: Copy) {
+    from "src/main/resources/assets"
+    into "${buildDir}/assets"
+}
+copyOriginalAssets.dependsOn(compileStaticJsx)
+
+task copyCompiledDynamicAssets(type: Copy) {
+    from "build/compiledAssets/dynamic/js"
+    into "${buildDir}/assets/dynamic/js"
+}
+copyCompiledDynamicAssets.dependsOn(copyOriginalAssets)
+
+task copyCompiledStaticAssets(type: Copy) {
+    from "build/compiledAssets/static/js"
+    into "${buildDir}/assets/static/js"
+}
+copyCompiledStaticAssets.dependsOn(copyCompiledDynamicAssets)
+
+// This task will be executed only if 'bootRun' is used
+
+task copyNotOptimizedCompiledAssetsToResources(type: Copy) {
+    from "${buildDir}/assets"
+    into "${buildDir}/resources/main/assets"
+}
+copyNotOptimizedCompiledAssetsToResources.dependsOn(copyCompiledStaticAssets)
+
+bootRun.dependsOn(copyNotOptimizedCompiledAssetsToResources)
+
+// RequireJs optimization and copying to resources
+
+task requireJsOptimizer(type: NodeTask) {
+    script = file('src/main/resources/requireJsOptimizer/r.js')
+    args = ['-o', 'src/main/resources/requireJsOptimizer/build.js']
+}
+requireJsOptimizer.dependsOn(copyCompiledStaticAssets)
+
+task copyOptimizedCompiledAssetsToResources(type: Copy) {
+    from "${buildDir}/assetsOptimized"
+    into "${buildDir}/resources/main/assets"
+}
+copyOptimizedCompiledAssetsToResources.dependsOn(requireJsOptimizer)
+
+jar {
+    baseName = 'market-engine'
+    version =  '0.0.1'
+}
+jar.dependsOn(copyOptimizedCompiledAssetsToResources)

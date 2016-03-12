@@ -1,0 +1,16 @@
+-----------------Build improve TODO list -----------------------
+// TODO compile Ecma6 to Ecma5 (using babel)
+
+-----------------SERVER TODO LIST---------------------------
+
+// TODO simple Tag hierarchical structure (one Tag to many SubTag's)
+// TODO enable Spring Security
+// TODO возможность переопределить property из IDEA при запуске gradle таска
+
+-----------------UI TODO LIST---------------------------
+
+// TODO Admin panel Tag management
+// TODO Tag display block
+// TODO Admin panel Product management
+// TODO Product display block
+// TODO Logo block
