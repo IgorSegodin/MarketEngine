@@ -15,11 +15,11 @@ Same for all other parameters from application.properties, like 'spring.datasour
     -- main
         -- java
         -- resources
-            -- assets // all web resources, including html pages, html templates, css, javascript
-                -- html // folder for views
-                -- dynamic // without cache, can use SPEL expressions. Folder for resources,  which can change for each request, like data about current user etc.
-                -- lib
-                -- static // cached, can use SPEL expressions. Folder for resources, which are staying the same for each request, like scripts without SPEL, or with expressions that need to be executed only once and then cached.
+            -- assets // all web resources, libraries, react components and page javascript
+                -- dynamic // without cache, can use SPEL expressions. Folder for resources, which can change for each request, like data about current user etc.
+                -- lib // libraries resources
+                -- static // cached, can use SPEL expressions. Folder for resources, that need to be executed only once and then cached.
+            -- html // folder for pages html
             -- liquibase // liquibase config
                 -- changelogs // liquibase scripts
             -- requireJsOptimizer  // folder for requireJsOptimizer and it's build config
