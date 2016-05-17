@@ -1,4 +1,4 @@
-package org.segodin.market.engine.config.web.resource;
+package org.segodin.market.engine.config.resource;
 
 import org.springframework.core.io.Resource;
 import org.springframework.expression.EvaluationContext;
